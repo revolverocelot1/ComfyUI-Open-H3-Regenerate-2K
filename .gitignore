@@ -1,0 +1,35 @@
+# Model weights and checkpoints
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+
+# Media files and outputs
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.webm
+*.png
+*.jpg
+*.jpeg
+*.webp
+outputs/
+inputs/
+models/
+
+# Python cache and environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Editor and OS metadata
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

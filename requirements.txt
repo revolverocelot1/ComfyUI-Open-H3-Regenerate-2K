@@ -1,0 +1,5 @@
+huggingface_hub>=0.20.0
+torch>=2.4.0
+safetensors>=0.4.3
+einops>=0.7.0
+tqdm>=4.66.0
