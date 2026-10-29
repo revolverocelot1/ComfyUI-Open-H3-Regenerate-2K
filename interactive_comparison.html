@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Open-H3-Regenerate-2K Interactive Magnifier Comparison</title>
+<style>
+  :root {
+    --bg: #090a0f;
+    --card: #12141c;
+    --border: #232736;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #76b900; /* NVIDIA Green */
+    --accent-glow: rgba(118, 185, 0, 0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .container {
+    max-width: 1200px;
+    width: 100%;
+  }
+  header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+  h1 { font-size: 1.5rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  p.subtitle { color: var(--muted); font-size: 0.9rem; }
+  .instructions {
+    background: rgba(118, 185, 0, 0.08);
+    border: 1px solid rgba(118, 185, 0, 0.3);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    color: #c2e276;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .btn-group { display: flex; gap: 8px; align-items: center; }
+  button {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  button:hover {
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.active {
+    background: var(--accent);
+    color: #0b1200;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .zoom-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .zoom-control select {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 6px;
+    outline: none;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .stage-card, .zoom-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .card-header {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stage-canvas {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: block;
+    cursor: grab;
+    background: #000;
+  }
+  .stage-canvas:active { cursor: grabbing; }
+  .zooms-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .zoom-canvas {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: block;
+    background: #000;
+  }
+  .badge-ours {
+    color: var(--accent);
+    background: rgba(118, 185, 0, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+  .badge-input {
+    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+  }
+  .status-text {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Open-H3-Regenerate-2K: Interactive Video Magnifier</h1>
+    <p class="subtitle">Real-time synchronized comparison between Stage 1 Draft (768p) and Stage 2 Refinement (2048×1152 2K).</p>
+  </header>
+
+  <div class="instructions">
+    <span>🖐️ <strong>Interactive Magnifier:</strong> Hover or drag your cursor across the main video to move the inspection window. The right panels update in real time with high-magnification crops.</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="btn-group" id="tabs">
+      <button class="active" onclick="switchClip(0)">Glass Mushroom (C028)</button>
+      <button onclick="switchClip(1)">Kingfisher (C036)</button>
+      <button onclick="switchClip(2)">Peking Opera (C026)</button>
+    </div>
+
+    <div class="btn-group">
+      <button id="playBtn" onclick="togglePlay()">Pause</button>
+      <button id="viewToggleBtn" onclick="toggleMainView()">Viewing: 2K Output</button>
+      <div class="zoom-control">
+        <label for="zoomSelect">Magnifier Zoom:</label>
+        <select id="zoomSelect" onchange="setZoom(this.value)">
+          <option value="4">4x Zoom</option>
+          <option value="6">6x Zoom</option>
+          <option value="8" selected>8x Zoom</option>
+          <option value="12">12x Zoom</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Main Full-Frame View -->
+    <div class="stage-card">
+      <div class="card-header">
+        <span id="stageTitle">Main View (2048×1152 2K) — Move cursor to inspect</span>
+        <span class="status-text" id="statusText">Playing synchronized...</span>
+      </div>
+      <canvas id="mainCanvas" class="stage-canvas"></canvas>
+    </div>
+
+    <!-- Right Side Synchronized Zoom Crops -->
+    <div class="zooms-column">
+      <!-- 2K Regenerated Crop -->
+      <div class="zoom-card" style="border-color: rgba(118, 185, 0, 0.4);">
+        <div class="card-header">
+          <span>Stage 2 Refined Crop</span>
+          <span class="badge-ours">Open-H3-Regenerate-2K</span>
+        </div>
+        <canvas id="zoomOursCanvas" class="zoom-canvas"></canvas>
+      </div>
+
+      <!-- 768p Input Crop -->
+      <div class="zoom-card">
+        <div class="card-header">
+          <span>Stage 1 Input Crop</span>
+          <span class="badge-input">768p Base Draft</span>
+        </div>
+        <canvas id="zoomInputCanvas" class="zoom-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CLIPS = [
+  {
+    name: "Glass Mushroom",
+    ours: "assets/output_2k.mp4",
+    oursFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C028-ours.mp4",
+    input: "assets/input_768p.mp4",
+    inputFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C028-input.mp4",
+    defaultCX: 0.5,
+    defaultCY: 0.5
+  },
+  {
+    name: "Kingfisher",
+    ours: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C036-ours.mp4",
+    oursFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C036-ours.mp4",
+    input: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C036-input.mp4",
+    inputFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C036-input.mp4",
+    defaultCX: 0.45,
+    defaultCY: 0.45
+  },
+  {
+    name: "Peking Opera",
+    ours: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C026-ours.mp4",
+    oursFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C026-ours.mp4",
+    input: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C026-input.mp4",
+    inputFallback: "https://huggingface.co/datasets/Efficient-Large-Model/Sana-assets/resolve/main/Open-H3-Regenerate-2K/assets/sol-engine/us/C026-input.mp4",
+    defaultCX: 0.52,
+    defaultCY: 0.38
+  }
+];
+
+let curIdx = 0;
+let showOurs = true;
+let zoomFactor = 8;
+let cx = 0.5;
+let cy = 0.5;
+let isPlaying = true;
+
+const videoOurs = document.createElement('video');
+videoOurs.muted = true;
+videoOurs.loop = true;
+videoOurs.playsInline = true;
+videoOurs.crossOrigin = "anonymous";
+
+const videoInput = document.createElement('video');
+videoInput.muted = true;
+videoInput.loop = true;
+videoInput.playsInline = true;
+videoInput.crossOrigin = "anonymous";
+
+// Setup fallback handlers
+videoOurs.onerror = () => {
+  if (videoOurs.src !== CLIPS[curIdx].oursFallback) {
+    videoOurs.src = CLIPS[curIdx].oursFallback;
+    videoOurs.play().catch(()=>{});
+  }
+};
+videoInput.onerror = () => {
+  if (videoInput.src !== CLIPS[curIdx].inputFallback) {
+    videoInput.src = CLIPS[curIdx].inputFallback;
+    videoInput.play().catch(()=>{});
+  }
+};
+
+const mainCanvas = document.getElementById('mainCanvas');
+const zoomOursCanvas = document.getElementById('zoomOursCanvas');
+const zoomInputCanvas = document.getElementById('zoomInputCanvas');
+
+function initClip(idx) {
+  curIdx = idx;
+  cx = CLIPS[idx].defaultCX;
+  cy = CLIPS[idx].defaultCY;
+  document.getElementById('statusText').textContent = "Buffering...";
+  
+  videoOurs.src = CLIPS[idx].ours;
+  videoInput.src = CLIPS[idx].input;
+  
+  Promise.all([videoOurs.play(), videoInput.play()])
+    .then(() => {
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = "Pause";
+      document.getElementById('statusText').textContent = "Synchronized";
+    })
+    .catch(() => {});
+}
+
+function updatePointer(e) {
+  const rect = mainCanvas.getBoundingClientRect();
+  const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+  const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+  if (clientX !== undefined && clientY !== undefined) {
+    cx = Math.max(0.05, Math.min(0.95, (clientX - rect.left) / rect.width));
+    cy = Math.max(0.05, Math.min(0.95, (clientY - rect.top) / rect.height));
+  }
+}
+
+mainCanvas.addEventListener('mousemove', updatePointer);
+mainCanvas.addEventListener('touchmove', (e) => { updatePointer(e); e.preventDefault(); }, { passive: false });
+
+function togglePlay() {
+  if (isPlaying) {
+    videoOurs.pause();
+    videoInput.pause();
+    isPlaying = false;
+    document.getElementById('playBtn').textContent = "Play";
+    document.getElementById('statusText').textContent = "Paused";
+  } else {
+    videoInput.currentTime = videoOurs.currentTime;
+    videoOurs.play();
+    videoInput.play();
+    isPlaying = true;
+    document.getElementById('playBtn').textContent = "Pause";
+    document.getElementById('statusText').textContent = "Synchronized";
+  }
+}
+
+function toggleMainView() {
+  showOurs = !showOurs;
+  document.getElementById('viewToggleBtn').textContent = showOurs ? "Viewing: 2K Output" : "Viewing: 768p Input";
+  document.getElementById('stageTitle').textContent = showOurs ? "Main View (2048×1152 2K) — Move cursor to inspect" : "Main View (768p Input) — Move cursor to inspect";
+}
+
+function setZoom(val) {
+  zoomFactor = parseFloat(val);
+}
+
+function switchClip(idx) {
+  const tabs = document.querySelectorAll('#tabs button');
+  tabs.forEach((b, i) => b.classList.toggle('active', i === idx));
+  initClip(idx);
+}
+
+function render() {
+  requestAnimationFrame(render);
+
+  // Sync videos if drift exceeds 0.08s
+  if (isPlaying && Math.abs(videoInput.currentTime - videoOurs.currentTime) > 0.08) {
+    videoInput.currentTime = videoOurs.currentTime;
+  }
+
+  const activeVideo = showOurs ? videoOurs : videoInput;
+
+  // Fit canvas resolutions
+  const dpr = window.devicePixelRatio || 1;
+  const setDim = (canvas) => {
+    const w = Math.round(canvas.clientWidth * dpr);
+    const h = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+  };
+
+  setDim(mainCanvas);
+  setDim(zoomOursCanvas);
+  setDim(zoomInputCanvas);
+
+  const gMain = mainCanvas.getContext('2d');
+  const gOurs = zoomOursCanvas.getContext('2d');
+  const gInput = zoomInputCanvas.getContext('2d');
+
+  if (activeVideo.readyState >= 2) {
+    gMain.drawImage(activeVideo, 0, 0, mainCanvas.width, mainCanvas.height);
+
+    // Compute magnifier bounding box
+    const boxW = mainCanvas.width / zoomFactor;
+    const boxH = mainCanvas.height / zoomFactor;
+    const boxX = Math.max(0, Math.min(mainCanvas.width - boxW, cx * mainCanvas.width - boxW / 2));
+    const boxY = Math.max(0, Math.min(mainCanvas.height - boxH, cy * mainCanvas.height - boxH / 2));
+
+    // Draw magnifier box with NVIDIA green outline
+    gMain.lineWidth = 2 * dpr;
+    gMain.strokeStyle = '#76b900';
+    gMain.fillStyle = 'rgba(118, 185, 0, 0.15)';
+    gMain.strokeRect(boxX, boxY, boxW, boxH);
+    gMain.fillRect(boxX, boxY, boxW, boxH);
+  }
+
+  // Draw 2K Ours zoom crop
+  if (videoOurs.readyState >= 2) {
+    const vW = videoOurs.videoWidth;
+    const vH = videoOurs.videoHeight;
+    const cropW = vW / zoomFactor;
+    const cropH = vH / zoomFactor;
+    const cropX = Math.max(0, Math.min(vW - cropW, cx * vW - cropW / 2));
+    const cropY = Math.max(0, Math.min(vH - cropH, cy * vH - cropH / 2));
+    gOurs.drawImage(videoOurs, cropX, cropY, cropW, cropH, 0, 0, zoomOursCanvas.width, zoomOursCanvas.height);
+  }
+
+  // Draw 768p Input zoom crop
+  if (videoInput.readyState >= 2) {
+    const vW = videoInput.videoWidth;
+    const vH = videoInput.videoHeight;
+    const cropW = vW / zoomFactor;
+    const cropH = vH / zoomFactor;
+    const cropX = Math.max(0, Math.min(vW - cropW, cx * vW - cropW / 2));
+    const cropY = Math.max(0, Math.min(vH - cropH, cy * vH - cropH / 2));
+    gInput.drawImage(videoInput, cropX, cropY, cropW, cropH, 0, 0, zoomInputCanvas.width, zoomInputCanvas.height);
+  }
+}
+
+// Start
+initClip(0);
+render();
+</script>
+
+</body>
+</html>

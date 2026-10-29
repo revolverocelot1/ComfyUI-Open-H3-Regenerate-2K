@@ -5,7 +5,12 @@
 *.pth
 *.ckpt
 
-# Media files and outputs
+# Output directories
+outputs/
+inputs/
+models/
+
+# Root media files (whitelist assets/ for repo demos and figures)
 *.mp4
 *.mkv
 *.avi
@@ -15,9 +20,7 @@
 *.jpg
 *.jpeg
 *.webp
-outputs/
-inputs/
-models/
+!assets/**
 
 # Python cache and environments
 __pycache__/
